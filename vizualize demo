@@ -1,0 +1,56 @@
+import yfinance as yf
+import matplotlib.pyplot as plt
+import pandas as pd
+from datetime import datetime, timedelta
+
+def fetch_stock_data(ticker, days=30):
+    """Fetch historical stock data for a given ticker."""
+    end_date = datetime.now()
+    start_date = end_date - timedelta(days=days)
+    stock = yf.Ticker(ticker)
+    data = stock.history(start=start_date, end=end_date)
+    return data
+
+def plot_stock_data(data, ticker):
+    """Plot stock closing prices with a moving average."""
+    plt.figure(figsize=(12, 6))
+    
+    # Plot closing prices
+    plt.plot(data.index, data['Close'], label=f'{ticker} Closing Price', color='blue')
+    
+    # Calculate and plot 7-day moving average
+    data['MA7'] = data['Close'].rolling(window=7).mean()
+    plt.plot(data.index, data['MA7'], label='7-Day Moving Average', color='orange', linestyle='--')
+    
+    plt.title(f'{ticker} Stock Price - Last 30 Days')
+    plt.xlabel('Date')
+    plt.ylabel('Price (USD)')
+    plt.legend()
+    plt.grid(True)
+    plt.xticks(rotation=45)
+    plt.tight_layout()
+    
+    # Save the plot
+    plt.savefig(f'{ticker}_stock_price.png')
+    plt.close()
+
+def main():
+    # Example ticker (Apple Inc.)
+    ticker = "AAPL"
+    
+    # Fetch data
+    try:
+        stock_data = fetch_stock_data(ticker)
+        if stock_data.empty:
+            print(f"No data found for ticker {ticker}")
+            return
+        
+        # Plot and save the data
+        plot_stock_data(stock_data, ticker)
+        print(f"Stock price plot for {ticker} has been saved as {ticker}_stock_price.png")
+        
+    except Exception as e:
+        print(f"Error fetching data for {ticker}: {str(e)}")
+
+if __name__ == "__main__":
+    main()
